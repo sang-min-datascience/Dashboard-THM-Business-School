@@ -1,0 +1,6 @@
+{
+  "name": "THM Betriebswirtschaft Dashboard",
+  "description": "Ein interaktives Dashboard für den Bachelorstudiengang Betriebswirtschaft (PO 2025) der THM Gießen mit Fokus auf Prüfungsformen und Semesterübersichten.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

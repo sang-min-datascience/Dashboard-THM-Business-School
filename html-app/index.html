@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Betriebswirtschaft B.Sc. - THM Studienplaner & Reform-Radar</title>
+  
+  <!-- CSS & Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          boxShadow: {
+            '3xs': '0 1px 2px rgba(0,0,0,0.03)',
+            '2xs': '0 1px 3px rgba(0,0,0,0.05)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* Custom Scrollbar for list panels */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#F8FAFC] flex flex-col font-sans text-slate-900">
+
+  <!-- Header Bar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs" id="main-header">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <!-- THM Brand Logo Replica -->
+        <div class="flex flex-col items-center justify-center bg-blue-600 text-white font-sans font-bold px-3 py-1.5 rounded shadow-sm shrink-0">
+          <span class="text-lg tracking-tight leading-none">THM</span>
+          <span class="text-[8px] uppercase tracking-widest leading-none mt-0.5 font-mono">Wirtschaft</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <i data-lucide="graduation-cap" class="w-5 h-5 text-blue-600 shrink-0"></i>
+            <select id="select-degree" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded py-1 px-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500 transition-colors cursor-pointer shadow-3xs shrink-0">
+              <option value="bwl" selected>Betriebswirtschaft B.Sc. (7 Sem.)</option>
+              <option value="bwl_nm">Nachhaltigkeitsmanagement B.Sc. (7 Sem.)</option>
+            </select>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
+              PO 2025
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 mt-1">
+            Interaktiver Studienplaner & Prüfungsanalyse-Dashboard | Campus Gießen (HTML-Version)
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick config stats summary -->
+      <div class="flex items-center gap-4 bg-slate-50 p-2 rounded border border-slate-200">
+        <div class="text-right px-2">
+          <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-tight">Gesamt-CrP</span>
+          <span id="stat-total-crp" class="text-base font-mono font-bold text-blue-600">
+            210 / 210
+          </span>
+        </div>
+        <div class="border-l border-slate-200 h-7"></div>
+        <div class="text-right px-2">
+          <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-tight">Module</span>
+          <span id="stat-module-count" class="text-base font-mono font-bold text-slate-800">
+            35
+          </span>
+        </div>
+        <div class="border-l border-slate-200 h-7"></div>
+        <div class="text-right px-2">
+          <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-tight">Coaching (SK)</span>
+          <span id="stat-coaching-count" class="text-base font-mono font-bold text-slate-800">
+            4 Module
+          </span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Configuration & Controls Section -->
+  <section class="bg-slate-900 text-white border-b border-slate-800 p-5" id="curriculum-configurator">
+    <div class="max-w-7xl mx-auto space-y-3.5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+        <div>
+          <h2 class="text-sm font-bold flex items-center gap-1.5 text-white uppercase tracking-wider">
+            <i data-lucide="sparkles" class="w-4 h-4 text-blue-400 shrink-0"></i> Personalisierter Studienplaner-Konfigurator
+          </h2>
+          <p class="text-[11px] text-slate-400">
+            Konfigurieren Sie Ihre Studienschwerpunkte (Spezialisierungen) für Gießen PO 2025. Das Curriculum passt sich automatisch an.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="configurator-bwl">
+        <!-- Schwerpunkt 1 Selector -->
+        <div class="space-y-1.5">
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+            <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-blue-400"></i> Studienschwerpunkt 1 (24 CrP)
+          </label>
+          <select id="select-major1" class="w-full bg-slate-800 text-white border border-slate-700 rounded p-2 text-xs font-medium focus:outline-none focus:border-blue-500 transition-colors">
+            <!-- Filled dynamically -->
+          </select>
+        </div>
+
+        <!-- Schwerpunkt 2 Type Selector -->
+        <div class="space-y-1.5">
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+            <i data-lucide="layers" class="w-3.5 h-3.5 text-emerald-400"></i> Typ des 2. Schwerpunkt-Bereichs
+          </label>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btn-s2-major" class="px-2.5 py-2 rounded text-xs font-bold border border-blue-500 bg-blue-600/20 text-blue-300 transition-all">
+              2. Spezialisierung
+            </button>
+            <button id="btn-s2-electives" class="px-2.5 py-2 rounded text-xs font-bold border border-slate-700 bg-slate-850 text-slate-400 transition-all">
+              Freie Wahlpflicht
+            </button>
+          </div>
+        </div>
+
+        <!-- Schwerpunkt 2 Selection -->
+        <div class="space-y-1.5">
+          <!-- Option A: Major 2 Dropdown -->
+          <div id="container-major2" class="space-y-1.5">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+              <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-blue-400"></i> Studienschwerpunkt 2 (24 CrP)
+            </label>
+            <select id="select-major2" class="w-full bg-slate-800 text-white border border-slate-700 rounded p-2 text-xs font-medium focus:outline-none focus:border-blue-500 transition-colors">
+              <!-- Filled dynamically -->
+            </select>
+          </div>
+
+          <!-- Option B: Electives Indicator -->
+          <div id="container-electives-summary" class="space-y-1.5 hidden">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Wahlpflichtmodule (4 Stück gewählt)
+            </label>
+            <div class="bg-slate-950/80 p-2 rounded border border-slate-800 flex items-center justify-between text-xs">
+              <span id="text-electives-count" class="text-slate-300 truncate font-medium">
+                4 gewählt (Kat. A: 4, Kat. B: 0)
+              </span>
+              <a href="#elective-checklist-section" class="text-blue-400 hover:underline font-bold">
+                Ändern &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Praxisphase Distribution -->
+        <div class="space-y-1.5">
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+            <i data-lucide="compass" class="w-3.5 h-3.5 text-blue-400"></i> Praxisphase Durchführung
+          </label>
+          <select id="select-praxis" class="w-full bg-slate-800 text-white border border-slate-700 rounded p-2 text-xs font-medium focus:outline-none focus:border-blue-500 transition-colors">
+            <option value="split" selected>Geteilt (Standard: 12 CP Sem. 6 / 18 CP Sem. 7)</option>
+            <option value="sem6">Vollständig im 6. Semester (30 CP)</option>
+            <option value="sem7">Vollständig im 7. Semester (30 CP)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 hidden" id="configurator-nm">
+        <!-- NM Wahlpflichtpool A -->
+        <div class="space-y-1.5">
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+            <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-blue-400"></i> Wahlpflichtpool A (Nachhaltigkeit)
+          </label>
+          <select id="select-nm-elective-a" class="w-full bg-slate-800 text-white border border-slate-700 rounded p-2 text-xs font-medium focus:outline-none focus:border-blue-500 transition-colors">
+            <!-- Filled dynamically -->
+          </select>
+        </div>
+
+        <!-- NM Wahlpflichtpool B -->
+        <div class="space-y-1.5">
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+            <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-blue-400"></i> Wahlpflichtpool B (Interdisziplinär)
+          </label>
+          <select id="select-nm-elective-b" class="w-full bg-slate-800 text-white border border-slate-700 rounded p-2 text-xs font-medium focus:outline-none focus:border-blue-500 transition-colors">
+            <!-- Filled dynamically -->
+          </select>
+        </div>
+
+        <!-- Spacer -->
+        <div></div>
+
+        <!-- Praxisphase Distribution -->
+        <div class="space-y-1.5">
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+            <i data-lucide="compass" class="w-3.5 h-3.5 text-blue-400"></i> Praxisphase Durchführung
+          </label>
+          <select id="select-praxis-nm" class="w-full bg-slate-800 text-white border border-slate-700 rounded p-2 text-xs font-medium focus:outline-none focus:border-blue-500 transition-colors">
+            <option value="split" selected>Geteilt (Standard: 12 CP Sem. 6 / 18 CP Sem. 7)</option>
+            <option value="sem6">Vollständig im 6. Semester (30 CP)</option>
+            <option value="sem7">Vollständig im 7. Semester (30 CP)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Navigation Tabs -->
+  <nav class="bg-white border-b border-slate-200 shadow-3xs" id="navigation-tabs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex border-b border-transparent">
+      <button onclick="switchTab('semester')" id="tab-semester" class="flex items-center gap-2 px-4 py-3 border-b-2 border-blue-600 text-blue-600 font-bold text-xs sm:text-sm transition-all focus:outline-none">
+        <i data-lucide="calendar" class="w-4 h-4"></i> Semester-Ansicht
+      </button>
+      <button onclick="switchTab('reform')" id="tab-reform" class="flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-xs sm:text-sm transition-all focus:outline-none">
+        <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Prüfungsanalyse &amp; Reform
+      </button>
+      <button onclick="switchTab('schwerpunkte')" id="tab-schwerpunkte" class="flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-xs sm:text-sm transition-all focus:outline-none">
+        <i data-lucide="graduation-cap" class="w-4 h-4"></i> Schwerpunkte Explorer
+      </button>
+      <button onclick="switchTab('glossar')" id="tab-glossar" class="flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-xs sm:text-sm transition-all focus:outline-none">
+        <i data-lucide="book-open" class="w-4 h-4"></i> Glossar &amp; Infos
+      </button>
+    </div>
+  </nav>
+
+  <!-- Search & Filter Bar (hidden on Schwerpunkte and Glossar tabs) -->
+  <section id="filter-bar" class="bg-white border-b border-slate-200 p-4 shadow-3xs transition-all">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <!-- Search Input -->
+      <div class="relative flex-1">
+        <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
+        <input 
+          type="text" 
+          id="search-input" 
+          placeholder="Modulnamen, Dozent, Inhalte oder Modulnummer suchen..." 
+          class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500 transition-colors"
+        />
+      </div>
+
+      <!-- Quick filters -->
+      <div class="flex flex-wrap items-center gap-3">
+        <!-- Exam Type filter -->
+        <select id="filter-exam-type" class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold focus:outline-none focus:border-blue-500">
+          <option value="all">Alle Prüfungsformen</option>
+          <!-- Filled dynamically -->
+        </select>
+
+        <!-- Language filter -->
+        <select id="filter-language" class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold focus:outline-none focus:border-blue-500">
+          <option value="all">Alle Sprachen</option>
+          <option value="Deutsch">Deutsch</option>
+          <option value="Englisch">Englisch</option>
+          <option value="Deutsch/Englisch">Deutsch/Englisch</option>
+        </select>
+
+        <!-- Checkbox filters -->
+        <div class="flex items-center gap-3.5 text-xs font-bold text-slate-600 bg-slate-50 px-3 py-2 border border-slate-200 rounded-lg">
+          <label class="flex items-center gap-1.5 cursor-pointer">
+            <input type="checkbox" id="filter-mc" class="rounded text-blue-600 focus:ring-blue-500" />
+            <span>Nur Multiple-Choice</span>
+          </label>
+          <div class="border-l border-slate-200 h-4"></div>
+          <label class="flex items-center gap-1.5 cursor-pointer">
+            <input type="checkbox" id="filter-coaching" class="rounded text-blue-600 focus:ring-blue-500" />
+            <span>Coaching (SK)</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Active Filter Badge Counter -->
+  <section id="results-counter" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 hidden">
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+        <span id="text-match-count">35</span> Treffer gefunden
+      </span>
+      <button onclick="clearAllFilters()" class="text-xs text-blue-600 hover:underline font-bold">
+        Filter zurücksetzen
+      </button>
+    </div>
+  </section>
+
+  <!-- Main Content Stage -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5">
+    
+    <!-- Tab 1: Semester-Ansicht -->
+    <div id="panel-semester" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" id="semester-grid">
+        <!-- Generated dynamically -->
+      </div>
+
+      <!-- Elective Configurator Panel (only visible if Schwerpunkt 2 is Electives) -->
+      <div id="panel-elective-selector" class="border border-slate-200 rounded-xl bg-white p-5 shadow-3xs hidden">
+        <div class="flex items-start gap-2.5 border-b border-slate-100 pb-3 mb-4" id="elective-checklist-section">
+          <i data-lucide="layers" class="w-5 h-5 text-indigo-600 shrink-0 mt-0.5"></i>
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">
+              Wahlpflichtmodule konfigurieren (Soll: Genau 4 Module)
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+              Wählen Sie genau 4 Module aus dem Wahlpflichtkatalog. Achtung laut PO § 1 (3): maximal zwei Module aus Kategorie B (Sprach- & Mentoringkurse) zulässig.
+            </p>
+          </div>
+        </div>
+
+        <!-- Warning Message Container -->
+        <div id="electives-validation-alert" class="p-3.5 rounded bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium mb-4 flex items-start gap-2 hidden">
+          <i data-lucide="alert-circle" class="w-4 h-4 mt-0.5 text-amber-600 shrink-0"></i>
+          <span id="electives-validation-message">Bitte wählen Sie genau 4 Module aus.</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" id="electives-list-grid">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+
+      <!-- Schwerpunkt- & Wahlpflichtmodule im Detail detailed accordion -->
+      <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-3xs space-y-4" id="specialties-details-container">
+        <div class="border-b border-slate-100 pb-3 flex items-start gap-2.5">
+          <i data-lucide="graduation-cap" class="w-5 h-5 text-blue-600 shrink-0 mt-0.5"></i>
+          <div>
+            <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider">
+              Detaillierter Modulkatalog der Schwerpunkte (48 CrP)
+            </h3>
+            <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+              Unterstützt die Gießener PO 2025: Klicken Sie auf ein Modul unten, um Beschreibungen, Leistungskriterien, Kompetenzziele und didaktische Reformvorschläge im Detail zu betrachten.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <!-- Accordion 1: Schwerpunkt 1 -->
+          <div class="border border-slate-200 rounded-lg overflow-hidden bg-slate-50/20">
+            <button 
+              id="btn-accordion-s1"
+              class="w-full px-4 py-3 bg-slate-100/50 hover:bg-slate-100 transition-colors flex items-center justify-between text-left border-b border-slate-200/60 focus:outline-none"
+            >
+              <div>
+                <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest block mb-0.5">Hauptfach (24 CrP)</span>
+                <h4 id="title-accordion-s1" class="font-bold text-slate-800 text-xs">
+                  Schwerpunkt 1: Controlling
+                </h4>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-mono text-slate-500 font-bold bg-white px-2 py-0.5 rounded border border-slate-200">
+                  4 Module
+                </span>
+                <i data-lucide="chevron-right" id="icon-accordion-s1" class="w-4 h-4 text-slate-400 transition-transform rotate-90"></i>
+              </div>
+            </button>
+
+            <div id="content-accordion-s1" class="bg-white p-4 space-y-3">
+              <p id="desc-accordion-s1" class="text-[11px] text-slate-500 leading-relaxed italic border-b border-slate-100 pb-2">
+                Beschreibung lädt...
+              </p>
+              <div id="list-accordion-s1" class="space-y-2">
+                <!-- Filled dynamically -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Accordion 2: Schwerpunkt 2 -->
+          <div class="border border-slate-200 rounded-lg overflow-hidden bg-slate-50/20">
+            <button 
+              id="btn-accordion-s2"
+              class="w-full px-4 py-3 bg-slate-100/50 hover:bg-slate-100 transition-colors flex items-center justify-between text-left border-b border-slate-200/60 focus:outline-none"
+            >
+              <div>
+                <span id="label-accordion-s2" class="text-[10px] font-bold text-purple-600 uppercase tracking-widest block mb-0.5">Nebenfach (24 CrP)</span>
+                <h4 id="title-accordion-s2" class="font-bold text-slate-800 text-xs">
+                  Schwerpunkt 2: Digital Business
+                </h4>
+              </div>
+              <div class="flex items-center gap-2">
+                <span id="count-badge-accordion-s2" class="text-[10px] font-mono text-slate-500 font-bold bg-white px-2 py-0.5 rounded border border-slate-200">
+                  4 Module
+                </span>
+                <i data-lucide="chevron-right" id="icon-accordion-s2" class="w-4 h-4 text-slate-400 transition-transform rotate-90"></i>
+              </div>
+            </button>
+
+            <div id="content-accordion-s2" class="bg-white p-4 space-y-3">
+              <p id="desc-accordion-s2" class="text-[11px] text-slate-500 leading-relaxed italic border-b border-slate-100 pb-2">
+                Beschreibung lädt...
+              </p>
+              <div id="list-accordion-s2" class="space-y-2">
+                <!-- Filled dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Prüfungsanalyse & Reform-Radar -->
+    <div id="panel-reform" class="space-y-6 hidden">
+      <!-- High-level analytics stat boxes -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Stat box 1 -->
+        <div class="p-4 bg-white rounded-xl border border-slate-200 flex items-start justify-between shadow-3xs">
+          <div class="space-y-1">
+            <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-tight">Klausurüberhang</span>
+            <span id="stat-klausur-count" class="text-xl font-bold text-slate-800 font-mono">20</span>
+            <p class="text-[10px] text-slate-500 leading-tight">Anzahl der Module mit (Teil-)Klausurprüfungen</p>
+          </div>
+          <div class="p-2.5 bg-red-50 text-red-600 rounded border border-red-100">
+            <i data-lucide="shield-alert" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <!-- Stat box 2 -->
+        <div class="p-4 bg-white rounded-xl border border-slate-200 flex items-start justify-between shadow-3xs">
+          <div class="space-y-1">
+            <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-tight">Anteil Multiple-Choice</span>
+            <span id="stat-mc-percentage" class="text-xl font-bold text-slate-800 font-mono">42.4%</span>
+            <p id="stat-mc-crp-desc" class="text-[10px] text-slate-500 leading-tight">89.0 CrP von 210 CrP teilweise im Antwort-Wahl-Verfahren</p>
+          </div>
+          <div class="p-2.5 bg-amber-50 text-amber-600 rounded border border-amber-100">
+            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <!-- Stat box 3 -->
+        <div class="p-4 bg-white rounded-xl border border-slate-200 flex items-start justify-between shadow-3xs">
+          <div class="space-y-1">
+            <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-tight">Reform-Empfehlungen</span>
+            <span id="stat-reform-count" class="text-xl font-bold text-blue-600 font-mono">35</span>
+            <p class="text-[10px] text-slate-500 leading-tight">Vorschläge auf Basis von Authentic Assessment & Alternative Grading</p>
+          </div>
+          <div class="p-2.5 bg-blue-50 text-blue-600 rounded border border-blue-100">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Multiple-Choice Warning Banner -->
+      <div id="mc-assessment-notice" class="p-4 rounded-xl border border-amber-200 bg-amber-50/40 space-y-2 text-xs">
+        <div class="flex items-center gap-2 text-amber-900 font-bold">
+          <i data-lucide="info" class="w-4 h-4 text-amber-600"></i>
+          <span>Wichtiger Hinweis: Antwort-Wahl-Verfahren (Multiple Choice) in Prüfungen</span>
+        </div>
+        <p class="text-slate-650 leading-relaxed text-[11px]">
+          Gemäß <strong>§ 8a PO (Antwort-Wahl-Verfahren)</strong> darf eine Modulprüfung ganz oder teilweise im Multiple-Choice-Format durchgeführt werden. Wenn mindestens 30 % der Fragen von einem Antwort-Wahl-Verfahren abgedeckt sind, gilt eine eigene Bestehensgrenze (Gleitklausel) und strenge Qualitätsstandards zur Festlegung der Bestehensschwellen.
+        </p>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Chart 1: Donut Distribution -->
+        <div class="p-4 bg-white rounded-xl border border-slate-200 shadow-3xs space-y-3.5">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="award" class="w-4 h-4 text-slate-500"></i> Gewichtete Prüfungsformen (CrP-Share)
+            </h3>
+            <span class="text-[10px] text-slate-400">Verlauf gewichtet nach Leistungspunkten</span>
+          </div>
+          <div class="relative h-64 flex items-center justify-center">
+            <canvas id="chart-exam-types" class="max-w-full max-h-full"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 2: Stacked Trend -->
+        <div class="p-4 bg-white rounded-xl border border-slate-200 shadow-3xs space-y-3.5">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="layers" class="w-4 h-4 text-slate-500"></i> Prüfungsform-Verteilung je Semester
+            </h3>
+            <span class="text-[10px] text-slate-400">Vergleich in CrP</span>
+          </div>
+          <div class="relative h-64 flex items-center justify-center">
+            <canvas id="chart-semester-trend" class="max-w-full max-h-full"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reform-Radar Panel -->
+      <div class="p-5 bg-blue-50/10 border border-blue-200/60 rounded-xl space-y-4 shadow-3xs" id="reform-radar-section">
+        <div class="flex items-start gap-3 border-b border-blue-100/60 pb-3">
+          <i data-lucide="sparkles" class="w-5 h-5 text-blue-600 shrink-0 mt-0.5"></i>
+          <div>
+            <h3 class="text-sm font-bold text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
+              Reform-Radar: Authentic Assessment & Alternative Grading
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+              Didaktische Reformvorschläge für Ihren gewählten Studienverlauf (<span id="radar-active-count">35</span> Module). Jedes Modul erhält hier praxisnahe Prüfungsalternativen, die tatsächliche Handlungskompetenzen messen, statt reines Auswendiglernen in Klausuren abzuprüfen.
+            </p>
+          </div>
+        </div>
+
+        <!-- Info card about educational terms -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-3.5 rounded-lg border border-slate-200 text-xs">
+          <div class="space-y-1">
+            <span class="inline-block px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold uppercase text-[9px] border border-blue-100 mb-1">
+              Authentic Assessment (Authentisches Prüfen)
+            </span>
+            <p class="text-slate-600 leading-relaxed text-[11px]">
+              Prüfungen simulieren reale berufliche Aufgaben (z.B. Erstellung eines Beratungsgutachtens, Live-Präsentation oder Software-Prototyp), um echte Handlungs- und Transferkompetenz zu prüfen.
+            </p>
+          </div>
+          <div class="space-y-1">
+            <span class="inline-block px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold uppercase text-[9px] border border-blue-100 mb-1">
+              Alternative Grading (Alternative Bewertung)
+            </span>
+            <p class="text-slate-600 leading-relaxed text-[11px]">
+              Fokus auf kontinuierliches Feedback und persönliche Entwicklung statt rein numerischem Druck. Methoden wie <strong>Specifications Grading</strong> (Bestehen nach klaren Kriterien mit Korrekturoption) oder <strong>Contract Grading</strong> belohnen den Lernfortschritt.
+            </p>
+          </div>
+        </div>
+
+        <!-- List of active modules with dynamic proposals -->
+        <div class="space-y-2 max-h-[380px] overflow-y-auto pr-1" id="reform-proposals-list">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+
+      <!-- Structured list of modules grouped by current exam type -->
+      <div class="space-y-4" id="grouped-exams-lists">
+        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2 uppercase tracking-wider">
+          <i data-lucide="list-filter" class="w-4 h-4"></i> Gliederung nach Prüfungsformen (Soll-Verlauf)
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="grouped-exams-grid">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Schwerpunkte Explorer -->
+    <div id="panel-schwerpunkte" class="space-y-5 hidden">
+      <div class="border border-slate-200 rounded-xl bg-white p-5 shadow-3xs">
+        <div class="flex items-start gap-2.5 border-b border-slate-100 pb-3 mb-4">
+          <i data-lucide="graduation-cap" class="w-5 h-5 text-blue-600 shrink-0 mt-0.5"></i>
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">
+              Spezialisierungsbereiche (Schwerpunkte) nach Gießen PO 2025
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+              Jeder Schwerpunkt umfasst genau 4 spezialisierende Module (insgesamt 24 Leistungspunkte) und bereitet gezielt auf attraktive Berufsfelder vor. Entdecken Sie die Fächerstruktur.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="majors-explorer-grid">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: Glossar & Infos -->
+    <div id="panel-glossar" class="space-y-5 hidden">
+      <!-- Glossary Content -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <!-- Main rules column -->
+        <div class="lg:col-span-2 space-y-5">
+          <!-- Rule 1 -->
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-3xs space-y-3">
+            <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2 flex items-center gap-2">
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500"></i> Antwort-Wahl-Verfahren (§ 8a PO)
+            </h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Prüfungen können ganz oder teilweise im Multiple-Choice-Format durchgeführt werden. 
+              Die Bestehenshürde liegt regulär bei 60 % der erreichbaren Punkte, es sei denn, der Durchschnitt aller Prüflinge abzüglich 22 % liegt niedriger (Gleitklausel).
+              Dies garantiert faire Hürden auch bei extrem schwierigen Fragestellungen. Die Aufgaben müssen verständlich und eindeutig formuliert sein.
+            </p>
+          </div>
+
+          <!-- Rule 2 -->
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-3xs space-y-3">
+            <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2 flex items-center gap-2">
+              <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500"></i> Freiversuch &amp; Notenverbesserung (§ 13 PO)
+            </h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Wird eine Modulprüfung im regulären Fachsemester laut Studienverlauf erstmalig abgelegt und nicht bestanden, gilt sie als nicht unternommen (Freiversuch). 
+              Wurde sie bestanden, kann zur Notenverbesserung die Prüfung zum nächsten regulären Termin einmalig wiederholt werden. Es gilt die bessere Note.
+            </p>
+          </div>
+
+          <!-- Rule 3 -->
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-3xs space-y-3">
+            <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2 flex items-center gap-2">
+              <i data-lucide="info" class="w-4 h-4 text-blue-500"></i> Nachteilsausgleich für Studierende (§ 6 Abs. 5 PO)
+            </h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Macht ein Prüfling glaubhaft, dass er wegen länger andauernder oder ständiger körperlicher Behinderung oder chronischer Erkrankung nicht in der Lage ist, Prüfungsleistungen ganz oder teilweise in der vorgesehenen Form abzulegen, wird ihm gestattet, gleichwertige Prüfungsleistungen in einer anderen Form oder verlängerte Bearbeitungszeiten zu erbringen.
+            </p>
+          </div>
+        </div>
+
+        <!-- Definition list column -->
+        <div class="space-y-5">
+          <div class="bg-slate-900 text-slate-100 rounded-xl p-5 shadow-3xs space-y-4">
+            <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="book-open" class="w-4 h-4"></i> Offizielle Prüfungsformen
+            </h3>
+            <p class="text-[11px] text-slate-400 leading-relaxed">
+              Die Prüfungsordnung der THM Gießen definiert zahlreiche kompetenzorientierte Alternativen zur klassischen Klausur.
+            </p>
+            <div class="space-y-3.5 max-h-[460px] overflow-y-auto pr-1" id="glossary-definitions-list">
+              <!-- Filled dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="bg-slate-950 text-slate-500 text-xs border-t border-slate-900 py-6 mt-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="text-blue-500 font-bold font-mono">THM Gießen</span>
+        <span>&bull;</span>
+        <span>Fachbereich Wirtschaft (W)</span>
+      </div>
+      <div>
+        <span>Didaktisches Reform-Radar &amp; Studienplaner - Konvertiert in Standalone HTML</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Module Details Modal/Popup Overlay -->
+  <div id="module-modal-overlay" class="fixed inset-0 bg-slate-950/60 z-50 backdrop-blur-xs flex items-center justify-center p-4 transition-opacity duration-200 opacity-0 pointer-events-none">
+    <div id="module-modal-content" class="bg-white rounded-xl border border-slate-200 shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto transform scale-95 transition-transform duration-200 flex flex-col">
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-slate-100 flex items-start justify-between sticky top-0 bg-white z-10">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span id="modal-module-id" class="font-mono text-xs font-bold text-slate-400 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded">Nr. 101</span>
+            <span id="modal-module-type" class="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-100">Pflichtmodul</span>
+          </div>
+          <h3 id="modal-module-name" class="text-base sm:text-lg font-bold text-slate-900 leading-tight">
+            Grundlagen der BWL
+          </h3>
+          <p id="modal-module-english-name" class="text-xs text-slate-400 italic font-medium mt-0.5">
+            Basics of Business Administration
+          </p>
+        </div>
+        <button onclick="closeModuleModal()" class="p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-lg transition-colors focus:outline-none">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 space-y-5 flex-1 overflow-y-auto">
+        <!-- Quick stats grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div class="bg-slate-50 p-2.5 rounded border border-slate-150">
+            <span class="block text-[9px] text-slate-400 uppercase font-bold tracking-wider">Modulverantwortlich</span>
+            <span id="modal-responsible" class="text-[11px] font-bold text-slate-700 block truncate">Prof. Dr. Benjamin Löhr</span>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded border border-slate-150">
+            <span class="block text-[9px] text-slate-400 uppercase font-bold tracking-wider">Unterrichtssprache</span>
+            <span id="modal-language" class="text-[11px] font-bold text-slate-700 block">Deutsch</span>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded border border-slate-150">
+            <span class="block text-[9px] text-slate-400 uppercase font-bold tracking-wider">Leistungspunkte (CrP)</span>
+            <span id="modal-crp" class="text-[11px] font-bold text-slate-700 block">6 CrP (SWS: 5)</span>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded border border-slate-150">
+            <span class="block text-[9px] text-slate-400 uppercase font-bold tracking-wider">Workload Gesamt</span>
+            <span id="modal-workload" class="text-[11px] font-bold text-slate-700 block">180 Stunden</span>
+          </div>
+        </div>
+
+        <!-- Contents & Objectives -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <span class="block font-bold text-slate-500 uppercase text-[9px] tracking-wider">Modulinhalte (Kurzbeschreibung)</span>
+            <p id="modal-contents" class="text-slate-650 text-xs leading-relaxed bg-slate-50/50 p-3 rounded border border-slate-150/60">
+              Inhalte des Moduls...
+            </p>
+          </div>
+          <div class="space-y-1.5">
+            <span class="block font-bold text-slate-500 uppercase text-[9px] tracking-wider">Qualifikationsziele / Kompetenzen</span>
+            <p id="modal-objectives" class="text-slate-650 text-xs leading-relaxed bg-slate-50/50 p-3 rounded border border-slate-150/60">
+              Qualifikationsziele...
+            </p>
+          </div>
+        </div>
+
+        <!-- Original Exams list -->
+        <div class="space-y-2">
+          <span class="block font-bold text-slate-500 uppercase text-[9px] tracking-wider">Aktuell im Modulhandbuch vorgesehene Prüfungen:</span>
+          <div id="modal-exams-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <!-- Filled dynamically -->
+          </div>
+        </div>
+
+        <!-- Warnings & Coaching notes -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+          <!-- MC Warning -->
+          <div id="modal-mc-box" class="p-3 rounded border border-amber-200 bg-amber-50/20 flex gap-2.5 text-xs hidden">
+            <i data-lucide="alert-triangle" class="w-4.5 h-4.5 text-amber-600 shrink-0 mt-0.5"></i>
+            <div>
+              <span class="font-bold text-amber-800 block mb-0.5">Antwort-Wahl-Verfahren (MC) zulässig</span>
+              <p id="modal-mc-desc" class="text-slate-600 text-[11px] leading-relaxed">
+                Diese Klausur kann teilweise oder vollständig im Multiple-Choice-Format durchgeführt werden (§ 8a PO).
+              </p>
+            </div>
+          </div>
+
+          <!-- Coaching note -->
+          <div id="modal-coaching-box" class="p-3 rounded border border-indigo-200 bg-indigo-50/20 flex gap-2.5 text-xs hidden">
+            <i data-lucide="sparkles" class="w-4.5 h-4.5 text-indigo-600 shrink-0 mt-0.5"></i>
+            <div>
+              <span class="font-bold text-indigo-800 block mb-0.5">Schlüsselkompetenzen-Coaching</span>
+              <p class="text-slate-600 text-[11px] leading-relaxed">
+                Dieses Modul integriert fachunabhängiges Coaching zur systematischen Stärkung sozialer, persönlicher und methodischer Kompetenzen.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Didaktischer Reformvorschlag -->
+        <div id="modal-reform-box" class="p-4 rounded border border-blue-200 bg-blue-50/20 space-y-3.5">
+          <div class="flex items-start gap-2.5 pb-2.5 border-b border-blue-100/60">
+            <i data-lucide="sparkles" class="w-5 h-5 text-blue-600 shrink-0 mt-0.5"></i>
+            <div>
+              <h4 class="text-xs font-bold text-blue-900 uppercase tracking-wider">
+                💡 Didaktischer Reformvorschlag (Authentic Assessment)
+              </h4>
+              <p class="text-[10px] text-slate-500 font-medium">
+                Zukunftsorientierte Alternative basierend auf modernen, praxisnahen Standards
+              </p>
+            </div>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div>
+              <span class="block font-bold text-slate-500 uppercase text-[9px] tracking-wider mb-1.5">
+                Empfohlene Prüfungsform(en):
+              </span>
+              <div id="modal-reform-exams" class="flex flex-wrap gap-1.5">
+                <!-- Filled dynamically -->
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1.5">
+              <div class="space-y-1 bg-white p-2.5 rounded border border-slate-150">
+                <span class="block font-bold text-blue-700 uppercase text-[9px] tracking-wider mb-1">
+                  Authentic Assessment Konzept
+                </span>
+                <p id="modal-reform-authentic" class="text-slate-600 leading-relaxed text-[11px]">
+                  Concept details...
+                </p>
+              </div>
+              <div class="space-y-1 bg-white p-2.5 rounded border border-slate-150">
+                <span class="block font-bold text-blue-700 uppercase text-[9px] tracking-wider mb-1">
+                  Alternative Grading Methode
+                </span>
+                <p id="modal-reform-grading" class="text-slate-600 leading-relaxed text-[11px]">
+                  Grading details...
+                </p>
+              </div>
+            </div>
+
+            <div id="modal-reform-benefit-box" class="pt-2.5 border-t border-blue-100/50 text-[11px] text-blue-900 leading-relaxed bg-blue-50/40 p-2 rounded">
+              <strong class="font-bold text-blue-950">Didaktischer Mehrwert:</strong> <span id="modal-reform-benefit">Benefit details...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prerequisites -->
+        <div id="modal-prereq-box" class="pt-4 border-t border-slate-200 space-y-2.5 hidden">
+          <span class="block font-bold text-slate-500 uppercase text-[9px] tracking-wider">Zulassungsvoraussetzungen (§ 4 PO):</span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <!-- Mandatory -->
+            <div id="modal-prereq-mandatory-box" class="bg-red-50/30 border border-red-100 p-2.5 rounded hidden">
+              <span class="font-bold text-red-800 block text-[10px] uppercase tracking-wider mb-0.5">Zwingend vorgeschrieben</span>
+              <p id="modal-prereq-mandatory" class="text-slate-600 leading-normal text-[11px]"></p>
+            </div>
+            <!-- Recommended -->
+            <div id="modal-prereq-recommended-box" class="bg-slate-50 border border-slate-200 p-2.5 rounded hidden">
+              <span class="font-bold text-slate-600 block text-[10px] uppercase tracking-wider mb-0.5">Empfohlen</span>
+              <p id="modal-prereq-recommended" class="text-slate-600 leading-normal text-[11px]"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between rounded-b-xl">
+        <span class="text-[10px] text-slate-400">Campus Gießen &bull; PO 2025</span>
+        <button onclick="closeModuleModal()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded font-bold text-xs shadow-xs focus:outline-none transition-colors">
+          Schließen
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Interaction Controller Script -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
