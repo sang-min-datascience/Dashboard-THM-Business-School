@@ -1,4 +1,5 @@
 import { Module, Major, ExamTypeDefinition } from "./types";
+import { IBL_MODULES } from "./data/iblModules";
 
 export const EXAM_TYPE_DEFINITIONS: ExamTypeDefinition[] = [
   {
@@ -3794,7 +3795,7 @@ export const MODULES: Module[] = [
     language: "Deutsch/Englisch",
     degrees: ["um_msc"]
   },
-
+  ...IBL_MODULES
 ];
 
 

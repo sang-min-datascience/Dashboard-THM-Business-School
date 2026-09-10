@@ -58,6 +58,14 @@ export default function App() {
   const [umElective, setUmElective] = useState<string>("2008");
   const [umZusatzType, setUmZusatzType] = useState<"praxis" | "ausland">("praxis");
 
+  // Bachelor International Business and Leadership specific states
+  const [iblLanguage, setIblLanguage] = useState<"spa" | "ger" | "chn">("spa");
+  const [iblWp3, setIblWp3] = useState<string>("IBL309");
+  const [iblWp4, setIblWp4] = useState<string>("IBL409");
+  const [iblWp5, setIblWp5] = useState<string>("IBL509");
+  const [iblSem6Option, setIblSem6Option] = useState<"combined_15_15" | "internship_30">("combined_15_15");
+  const [iblWp7, setIblWp7] = useState<string>("IBL709");
+
   // 2. Tab and search state
   const [activeTab, setActiveTab] = useState<"studienverlauf" | "prüfungen" | "schwerpunkte" | "prüfungsordnung">("studienverlauf");
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -75,6 +83,64 @@ export default function App() {
 
   // 4. Calculate dynamic curriculum
   const userCurriculum = useMemo(() => {
+    if (selectedDegree === "ibl_bsc") {
+      const excludedIds = [
+        "IBL105", "IBL205", "IBL305", "IBL405", "IBL505", "IBL705", // Deutsch
+        "IBL106", "IBL206", "IBL306", "IBL406", "IBL506", "IBL706", // Spanisch
+        "IBL107", "IBL207_chn", "IBL307", "IBL407", "IBL507", "IBL707", // Chinesisch
+        "IBL309", "IBL310", // WP 3
+        "IBL409", "IBL410", // WP 4
+        "IBL509", "IBL510", // WP 5
+        "IBL601", "IBL602", "IBL603", // Sem 6
+        "IBL709", "IBL710" // WP 7
+      ];
+      const pflicht = MODULES.filter(m => m.degrees?.includes("ibl_bsc") && m.type === "pflicht" && !excludedIds.includes(m.id));
+      const curriculum = [...pflicht];
+
+      // 1. Zweitsprache
+      let langIds: string[] = [];
+      if (iblLanguage === "ger") {
+        langIds = ["IBL105", "IBL205", "IBL305", "IBL405", "IBL505", "IBL705"];
+      } else if (iblLanguage === "chn") {
+        langIds = ["IBL107", "IBL207_chn", "IBL307", "IBL407", "IBL507", "IBL707"];
+      } else {
+        langIds = ["IBL106", "IBL206", "IBL306", "IBL406", "IBL506", "IBL706"];
+      }
+      langIds.forEach(id => {
+        const mod = MODULES.find(m => m.id === id);
+        if (mod) curriculum.push(mod);
+      });
+
+      // 2. Wahlpflicht Sem 3
+      const wp3Mod = MODULES.find(m => m.id === iblWp3);
+      if (wp3Mod) curriculum.push(wp3Mod);
+
+      // 3. Wahlpflicht Sem 4
+      const wp4Mod = MODULES.find(m => m.id === iblWp4);
+      if (wp4Mod) curriculum.push(wp4Mod);
+
+      // 4. Wahlpflicht Sem 5
+      const wp5Mod = MODULES.find(m => m.id === iblWp5);
+      if (wp5Mod) curriculum.push(wp5Mod);
+
+      // 5. Sem 6
+      if (iblSem6Option === "internship_30") {
+        const p30 = MODULES.find(m => m.id === "IBL601");
+        if (p30) curriculum.push(p30);
+      } else {
+        const p15 = MODULES.find(m => m.id === "IBL602");
+        const a15 = MODULES.find(m => m.id === "IBL603");
+        if (p15) curriculum.push(p15);
+        if (a15) curriculum.push(a15);
+      }
+
+      // 6. Wahlpflicht Sem 7
+      const wp7Mod = MODULES.find(m => m.id === iblWp7);
+      if (wp7Mod) curriculum.push(wp7Mod);
+
+      return curriculum;
+    }
+
     if (selectedDegree.startsWith("dim_") || selectedDegree === "pm_msc" || selectedDegree === "um_msc") {
       let pflicht = MODULES.filter(m => m.degrees?.includes(selectedDegree) && m.type === "pflicht").map(m => {
         if (addDimZusatz && (m.id.startsWith("4101") || m.id.startsWith("4102") || m.id === "4301" || m.id === "4101_pm" || m.id === "4201" || m.id === "4202")) {
@@ -218,7 +284,7 @@ export default function App() {
     }
 
     return [...pflicht, ...s1, ...s2];
-  }, [selectedDegree, major1, major2Type, major2, selectedElectives, praxisSplit, nmElectiveA, nmElectiveB, dbElective, addDbPraxis, addDbAusland, addDimZusatz, pmElective, pmZusatzType, umMajor, umElective, umZusatzType]);
+  }, [selectedDegree, major1, major2Type, major2, selectedElectives, praxisSplit, nmElectiveA, nmElectiveB, dbElective, addDbPraxis, addDbAusland, addDimZusatz, pmElective, pmZusatzType, umMajor, umElective, umZusatzType, iblLanguage, iblWp3, iblWp4, iblWp5, iblSem6Option, iblWp7]);
 
   // Total configured Credit Points (CrP)
   const totalCrp = useMemo(() => {
@@ -226,6 +292,9 @@ export default function App() {
   }, [userCurriculum]);
 
   const targetCrp = useMemo(() => {
+    if (selectedDegree === "ibl_bsc") {
+      return 210;
+    }
     if (selectedDegree.startsWith("dim_") || selectedDegree === "pm_msc" || selectedDegree === "um_msc") {
       return 90 + (addDimZusatz ? 30 : 0);
     }
@@ -274,12 +343,13 @@ export default function App() {
       if (searchTerm) {
         const query = searchTerm.toLowerCase();
         const nameMatch = mod.name.toLowerCase().includes(query);
+        const englishNameMatch = mod.englishName?.toLowerCase().includes(query) || false;
         const codeMatch = mod.id.toLowerCase().includes(query);
         const contentsMatch = mod.contents?.toLowerCase().includes(query) || false;
         const objectivesMatch = mod.objectives?.toLowerCase().includes(query) || false;
         const responsibleMatch = mod.responsible?.toLowerCase().includes(query) || false;
         
-        if (!nameMatch && !codeMatch && !contentsMatch && !objectivesMatch && !responsibleMatch) {
+        if (!nameMatch && !englishNameMatch && !codeMatch && !contentsMatch && !objectivesMatch && !responsibleMatch) {
           isMatch = false;
         }
       }
@@ -487,6 +557,7 @@ export default function App() {
                   className="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded py-1 px-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all cursor-pointer shadow-3xs"
                 >
                   <option value="bwl">Betriebswirtschaft B.Sc. (7 Sem.)</option>
+                  <option value="ibl_bsc">International Business & Leadership B.Sc. (7 Sem.)</option>
                   <option value="bwl_nm">Nachhaltigkeitsmanagement B.Sc. (7 Sem.)</option>
                   <option value="digital_business_msc">Digital Business M.Sc. (3 Sem.)</option>
                   <option value="dim_digital_msc">Digital & Int. Marketing M.Sc. (SP Digital)</option>
@@ -495,7 +566,7 @@ export default function App() {
                   <option value="um_msc">Unternehmenssteuerung M.Sc. (3 Sem.)</option>
                 </select>
                 <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
-                  {selectedDegree === "digital_business_msc" ? "PO 2019 / V3" : selectedDegree.startsWith("dim_") ? "PO 2022 / V4" : selectedDegree === "pm_msc" ? "PO 2016 / V8" : selectedDegree === "um_msc" ? "PO 2016 / V6" : "PO 2025"}
+                  {selectedDegree === "ibl_bsc" ? "PO 2026 (Englisch)" : selectedDegree === "digital_business_msc" ? "PO 2019 / V3" : selectedDegree.startsWith("dim_") ? "PO 2022 / V4" : selectedDegree === "pm_msc" ? "PO 2016 / V8" : selectedDegree === "um_msc" ? "PO 2016 / V6" : "PO 2025"}
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-1">
@@ -523,7 +594,7 @@ export default function App() {
             <div className="text-right px-2">
               <span className="block text-[10px] text-slate-400 uppercase font-bold tracking-tight">Coaching (SK)</span>
               <span className="text-base font-mono font-bold text-slate-800">
-                {selectedDegree === "digital_business_msc" ? "0 Module" : (selectedDegree === "bwl_nm" ? "3 Module" : "4 Module")}
+                {selectedDegree === "digital_business_msc" ? "0 Module" : (selectedDegree === "bwl_nm" ? "3 Module" : (selectedDegree === "ibl_bsc" ? "4 Module (Labs)" : "4 Module"))}
               </span>
             </div>
           </div>
@@ -550,7 +621,7 @@ export default function App() {
                 <span>Auswahl unvollständig für exakt {targetCrp} CrP</span>
               </div>
             )}
-            {totalCrp === targetCrp && (selectedDegree === "bwl_nm" || electivesValidation.valid) && (
+            {totalCrp === targetCrp && (selectedDegree === "bwl_nm" || selectedDegree === "ibl_bsc" || electivesValidation.valid) && (
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-blue-500/10 text-blue-300 text-[11px] border border-blue-500/20 font-medium">
                 <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                 <span>Konfiguration regelkonform ({targetCrp} CrP)</span>
@@ -559,7 +630,91 @@ export default function App() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {selectedDegree.startsWith("dim_") ? (
+            {selectedDegree === "ibl_bsc" ? (
+              <>
+                {/* 1. Zweitsprache */}
+                <div className="space-y-1">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Zweitsprache (6 Module / 30 CrP)
+                  </label>
+                  <select
+                    value={iblLanguage}
+                    onChange={(e) => setIblLanguage(e.target.value as "spa" | "ger" | "chn")}
+                    className="w-full bg-slate-950 border border-slate-800 rounded py-2 px-3 text-xs text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium cursor-pointer"
+                  >
+                    <option value="spa">Spanisch (A1 → B2.2)</option>
+                    <option value="ger">Deutsch als Fremdsprache (A2.1 → B2.2)</option>
+                    <option value="chn">Chinesisch / Mandarin (A1.1 → B1.2)</option>
+                  </select>
+                </div>
+
+                {/* 2. 6. Semester Mobilitätsphase */}
+                <div className="space-y-1">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    6. Semester Mobilität (30 CrP)
+                  </label>
+                  <select
+                    value={iblSem6Option}
+                    onChange={(e) => setIblSem6Option(e.target.value as "combined_15_15" | "internship_30")}
+                    className="w-full bg-slate-950 border border-slate-800 rounded py-2 px-3 text-xs text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium cursor-pointer"
+                  >
+                    <option value="combined_15_15">Kombiniert: Praktikum (15) + Ausland (15)</option>
+                    <option value="internship_30">Praxisphase international (20 Wo. / 30 CrP)</option>
+                  </select>
+                </div>
+
+                {/* 3. Wahlpflicht Sem 3 - 5 */}
+                <div className="space-y-1">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Wahlpflicht Sem. 3, 4 & 5 (je 5 CrP)
+                  </label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <select
+                      value={iblWp3}
+                      onChange={(e) => setIblWp3(e.target.value)}
+                      title="Wahlpflicht 3. Semester"
+                      className="bg-slate-950 border border-slate-800 rounded py-2 px-1 text-[11px] text-white focus:outline-none focus:border-blue-500 cursor-pointer"
+                    >
+                      <option value="IBL309">S3: HR</option>
+                      <option value="IBL310">S3: Marketing</option>
+                    </select>
+                    <select
+                      value={iblWp4}
+                      onChange={(e) => setIblWp4(e.target.value)}
+                      title="Wahlpflicht 4. Semester"
+                      className="bg-slate-950 border border-slate-800 rounded py-2 px-1 text-[11px] text-white focus:outline-none focus:border-blue-500 cursor-pointer"
+                    >
+                      <option value="IBL409">S4: Risk/Gov</option>
+                      <option value="IBL410">S4: Org. Behav.</option>
+                    </select>
+                    <select
+                      value={iblWp5}
+                      onChange={(e) => setIblWp5(e.target.value)}
+                      title="Wahlpflicht 5. Semester"
+                      className="bg-slate-950 border border-slate-800 rounded py-2 px-1 text-[11px] text-white focus:outline-none focus:border-blue-500 cursor-pointer"
+                    >
+                      <option value="IBL509">S5: Twin Transf.</option>
+                      <option value="IBL510">S5: Dyn. Transf.</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* 4. Wahlpflicht Sem 7 Simulation */}
+                <div className="space-y-1">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    7. Sem. Simulationsmodul (3 CrP)
+                  </label>
+                  <select
+                    value={iblWp7}
+                    onChange={(e) => setIblWp7(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded py-2 px-3 text-xs text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium cursor-pointer"
+                  >
+                    <option value="IBL709">Exec. Leadership Sim. (General Mgmt.)</option>
+                    <option value="IBL710">Financial Leadership Sim. (CFO)</option>
+                  </select>
+                </div>
+              </>
+            ) : selectedDegree.startsWith("dim_") ? (
               <>
                 {/* DIM Curriculum Structure info */}
                 <div className="space-y-1">
@@ -1031,6 +1186,8 @@ export default function App() {
                   <option value="Deutsch">Deutsch</option>
                   <option value="Englisch">Englisch</option>
                   <option value="Deutsch/Englisch">Deutsch/Englisch</option>
+                  <option value="Spanisch">Spanisch</option>
+                  <option value="Chinesisch">Chinesisch</option>
                 </select>
 
                 {/* Toggles */}
@@ -1096,7 +1253,7 @@ export default function App() {
                   let semesterCrp = 0;
                   let semesterSws = 0;
 
-                  if (selectedDegree === "digital_business_msc" || selectedDegree.startsWith("dim_") || selectedDegree === "pm_msc" || selectedDegree === "um_msc") {
+                  if (selectedDegree === "ibl_bsc" || selectedDegree === "digital_business_msc" || selectedDegree.startsWith("dim_") || selectedDegree === "pm_msc" || selectedDegree === "um_msc") {
                     semesterModules = userCurriculum.filter(m => m.semester === sem);
                     semesterCrp = semesterModules.reduce((acc, curr) => acc + curr.crp, 0);
                     semesterSws = semesterModules.reduce((acc, curr) => acc + curr.sws, 0);
@@ -1235,7 +1392,7 @@ export default function App() {
                         )}
 
                         {/* Praxis phase abstract cards */}
-                        {selectedDegree !== "digital_business_msc" && sem === 6 && (praxisSplit === "split" || praxisSplit === "sem6") && (
+                        {(selectedDegree === "bwl" || selectedDegree === "bwl_nm") && sem === 6 && (praxisSplit === "split" || praxisSplit === "sem6") && (
                           renderAbstractCard(
                             "Praxisabschnitt",
                             praxisSplit === "split" ? "Praxisphase / Auslandssemester (Teil 1)" : "Praxisphase / Auslandssemester",
@@ -1248,7 +1405,7 @@ export default function App() {
                           )
                         )}
 
-                        {selectedDegree !== "digital_business_msc" && sem === 7 && (praxisSplit === "split" || praxisSplit === "sem7") && (
+                        {(selectedDegree === "bwl" || selectedDegree === "bwl_nm") && sem === 7 && (praxisSplit === "split" || praxisSplit === "sem7") && (
                           renderAbstractCard(
                             "Praxisabschnitt",
                             praxisSplit === "split" ? "Praxisphase / Auslandssemester (Teil 2)" : "Praxisphase / Auslandssemester",

@@ -24,7 +24,7 @@ export interface Module {
   mcDetails?: string;
   majorId?: string; // if it belongs to a major
   durationSemesters?: number; // 1 or 2
-  language?: "Deutsch" | "Englisch" | "Deutsch/Englisch" | "Spanisch";
+  language?: "Deutsch" | "Englisch" | "Deutsch/Englisch" | "Spanisch" | "Chinesisch" | string;
   workloadTotal?: number; // e.g. 180 hours
   workloadPresence?: number; // e.g. 75 hours
   workloadSelfStudy?: number; // e.g. 105 hours
